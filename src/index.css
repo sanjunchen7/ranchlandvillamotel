@@ -1,0 +1,102 @@
+@import "@fontsource/inter/latin-400.css";
+@import "@fontsource/inter/latin-500.css";
+@import "@fontsource/inter/latin-600.css";
+@import "@fontsource/inter/latin-700.css";
+@import "@fontsource/space-grotesk/latin-500.css";
+@import "@fontsource/space-grotesk/latin-600.css";
+@import "@fontsource/space-grotesk/latin-700.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --rv-navy: oklch(0.2956 0.0106 73.51);
+    --rv-navy-deep: oklch(0.2500 0.0072 67.49);
+    --rv-cream: oklch(0.9385 0.0132 82.40);
+    --rv-paper: oklch(0.9761 0.0041 91.45);
+    --rv-charcoal: oklch(0.3265 0.0144 62.91);
+    --rv-muted: oklch(0.4886 0.0147 75.24);
+    --rv-yellow: oklch(0.7404 0.1177 79.74);
+    --rv-yellow-hover: oklch(0.8003 0.1171 85.37);
+    --rv-line: oklch(0.8753 0.0180 81.33);
+    --rv-sage: oklch(0.6091 0.0339 231.72);
+    --background: 60 20% 96%;
+    --foreground: 30 10% 22%;
+    --card: 60 20% 96%;
+    --card-foreground: 30 10% 22%;
+    --popover: 60 20% 96%;
+    --popover-foreground: 30 10% 22%;
+    --primary: 30 8% 18%;
+    --primary-foreground: 60 20% 96%;
+    --secondary: 40 17% 90%;
+    --secondary-foreground: 30 8% 18%;
+    --muted: 40 17% 90%;
+    --muted-foreground: 30 5% 42%;
+    --accent: 38 57% 56%;
+    --accent-foreground: 30 8% 16%;
+    --destructive: 4 66% 43%;
+    --destructive-foreground: 45 33% 97%;
+    --border: 45 14% 81%;
+    --input: 45 14% 75%;
+    --ring: 38 57% 56%;
+    --radius: 0.5rem;
+  }
+  * { @apply border-border; }
+  html { scroll-behavior: smooth; }
+  body {
+    @apply m-0 text-foreground;
+    background: var(--rv-paper);
+    font-family: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.65;
+    min-height: 100dvh;
+  }
+  h1, h2, h3, .display-font {
+    font-family: "Space Grotesk", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.035em;
+  }
+  a, button, input, select, textarea, summary { @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2; --tw-ring-color: var(--rv-yellow); }
+  button, [role="button"], summary { @apply cursor-pointer; }
+  button:disabled { @apply cursor-not-allowed opacity-50; }
+  ::selection { background: var(--rv-yellow); color: var(--rv-navy-deep); }
+}
+
+@layer components {
+  .section-shell { @apply mx-auto w-full max-w-[1240px] px-5 md:px-8; }
+  .display-title { @apply text-4xl leading-[1.06] font-semibold md:text-6xl; font-family: "Space Grotesk", "PingFang SC", "Microsoft YaHei", sans-serif; letter-spacing: -0.04em; }
+  .section-title { @apply text-3xl leading-[1.12] font-semibold md:text-5xl; font-family: "Space Grotesk", "PingFang SC", "Microsoft YaHei", sans-serif; letter-spacing: -0.035em; }
+  .eyebrow { @apply text-xs font-semibold uppercase tracking-[0.16em]; }
+  .btn-primary { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-semibold uppercase tracking-[0.035em] transition duration-200 hover:-translate-y-0.5 active:translate-y-0; background: var(--rv-yellow); color: var(--rv-navy-deep); border: 2px solid var(--rv-yellow); }
+  .btn-primary:hover { background: var(--rv-yellow-hover); border-color: var(--rv-yellow-hover); }
+  .btn-secondary { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-md border-2 px-5 py-3 text-sm font-semibold uppercase tracking-[0.035em] transition duration-200 hover:-translate-y-0.5 active:translate-y-0; border-color: var(--rv-navy); color: var(--rv-navy); background: transparent; }
+  .btn-secondary:hover { background: var(--rv-navy); color: var(--rv-paper); }
+  .btn-light { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-md border-2 px-5 py-3 text-sm font-semibold uppercase tracking-[0.035em] transition duration-200; border-color: var(--rv-paper); color: var(--rv-paper); background: transparent; }
+  .btn-light:hover { background: var(--rv-paper); color: var(--rv-navy); }
+  .field { @apply min-h-12 w-full rounded-md border-2 bg-transparent px-3 py-2.5 text-base transition; border-color: var(--rv-line); }
+  .field:focus { border-color: var(--rv-navy); }
+  .field-label { @apply mb-1.5 block text-sm font-semibold; color: var(--rv-charcoal); }
+  .paper-panel { background: var(--rv-cream); border: 1px solid var(--rv-line); }
+  .navy-panel { background: var(--rv-yellow); color: var(--rv-charcoal); }
+  .navy-panel .btn-primary { background: var(--rv-navy); border-color: var(--rv-navy); color: var(--rv-paper); }
+  .navy-panel .btn-primary:hover { background: var(--rv-navy-deep); border-color: var(--rv-navy-deep); }
+  .navy-panel .btn-light { border-color: var(--rv-navy); color: var(--rv-navy); }
+  .navy-panel .btn-light:hover { background: var(--rv-navy); color: var(--rv-paper); }
+  .offset-block { box-shadow: 12px 12px 0 var(--rv-yellow); }
+  .status-pill { @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold; }
+  .admin-field { @apply min-h-10 w-full rounded-md border bg-white px-3 py-2 text-sm text-slate-900; }
+  .admin-btn { @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition hover:-translate-y-0.5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+.lightbox-enter { animation: lightbox-in 180ms ease-out; }
+@keyframes lightbox-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+
+/* Keep all display typography consistent, including admin headings that use the utility name. */
+.font-serif { font-family: "Space Grotesk", "PingFang SC", "Microsoft YaHei", sans-serif; }

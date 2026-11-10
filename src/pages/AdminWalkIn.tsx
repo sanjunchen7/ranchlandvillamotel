@@ -1,0 +1,42 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router";
+import { ArrowLeft, LoaderCircle } from "lucide-react";
+import { trpc } from "@/providers/trpc";
+import { AdminLayout } from "@/components/AdminLayout";
+import { notifyPublicDataChanged } from "@/lib/data-sync";
+
+function datePlus(days: number) { const d = new Date(); d.setDate(d.getDate() + days); return d.toISOString().slice(0, 10); }
+
+export default function AdminWalkIn() {
+  const navigate = useNavigate(); const auth = trpc.auth.me.useQuery(); const bootstrap = trpc.public.bootstrap.useQuery();
+  const [checkIn, setCheckIn] = useState(datePlus(0)); const [checkOut, setCheckOut] = useState(datePlus(1));
+  const [roomTypeId, setRoomTypeId] = useState(1); const [roomId, setRoomId] = useState(0);
+  const [adults, setAdults] = useState(2); const [children, setChildren] = useState(0); const [infants, setInfants] = useState(0);
+  const [kitchenPreference, setKitchenPreference] = useState<"NO_PREFERENCE" | "PREFER" | "REQUIRED">("NO_PREFERENCE");
+  const [firstName, setFirstName] = useState(""); const [lastName, setLastName] = useState(""); const [phone, setPhone] = useState(""); const [email, setEmail] = useState("");
+  const [preferredCheckInTime, setPreferredCheckInTime] = useState("2:00 PM"); const [pets, setPets] = useState(false); const [petFee, setPetFee] = useState("");
+  const [overrideReason, setOverrideReason] = useState("Walk-in guest — pay at property"); const [internalNotes, setInternalNotes] = useState(""); const [error, setError] = useState("");
+  const available = trpc.manage.walkInAvailability.useQuery({ checkIn, checkOut, adults, children, roomTypeId, kitchenPreference }, { enabled: checkOut > checkIn });
+  useEffect(() => { if (available.data?.length && !available.data.some((room) => room.id === roomId)) setRoomId(available.data[0].id); if (!available.data?.length) setRoomId(0); }, [available.data, roomId]);
+  const create = trpc.reservations.createWalkIn.useMutation({
+    onSuccess: (result) => { notifyPublicDataChanged(); navigate(`/admin/reservations/${result.reservationId}`); },
+    onError: (e) => setError(e.message),
+  });
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault(); setError("");
+    if (!roomId) return setError("No matching room is available for these dates.");
+    create.mutate({ checkIn, checkOut, roomId, adults, children, infants, firstName, lastName, phone: phone || undefined, email: email || undefined, preferredCheckInTime, kitchenPreference, pets, petFee: petFee || undefined, overrideReason, internalNotes: internalNotes || undefined });
+  };
+  if (auth.data && auth.data.role !== "ADMIN") return <AdminLayout title="Walk-in Reservation"><p className="border-l-4 border-amber-500 bg-amber-50 p-4 text-amber-900">Only an administrator can create a walk-in reservation without an online guarantee.</p></AdminLayout>;
+  return <AdminLayout title="Add Walk-in Reservation">
+    <Link to="/admin/reservations" className="mb-5 flex min-h-10 items-center gap-2 text-sm font-bold text-blue-800"><ArrowLeft size={17} />Back to reservations</Link>
+    <div className="mb-5 border-l-4 border-blue-700 bg-blue-50 p-4 text-sm text-blue-900">Use this for phone or in-person guests. The system checks room conflicts, creates a price snapshot and marks the reservation CHECKED_IN. Available is calculated automatically and is not a manual status.</div>
+    <form onSubmit={submit} className="grid gap-6 xl:grid-cols-[1fr_380px]">
+      <div className="flex flex-col gap-6">
+        <section className="bg-white p-5"><h2 className="text-lg font-bold">Stay and room</h2><div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><label className="text-sm font-semibold">Check-in<input className="admin-field mt-1" type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} required /></label><label className="text-sm font-semibold">Check-out<input className="admin-field mt-1" type="date" min={checkIn} value={checkOut} onChange={(e) => setCheckOut(e.target.value)} required /></label><label className="text-sm font-semibold">Adults<input className="admin-field mt-1" type="number" min={1} max={10} value={adults} onChange={(e) => setAdults(Number(e.target.value))} /></label><label className="text-sm font-semibold">Children age 2+<input className="admin-field mt-1" type="number" min={0} max={10} value={children} onChange={(e) => setChildren(Number(e.target.value))} /></label><label className="text-sm font-semibold">Infants under 2<input className="admin-field mt-1" type="number" min={0} max={20} value={infants} onChange={(e) => setInfants(Number(e.target.value))} /></label><label className="text-sm font-semibold">Room type<select className="admin-field mt-1" value={roomTypeId} onChange={(e) => setRoomTypeId(Number(e.target.value))}>{bootstrap.data?.roomTypes.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select></label><label className="text-sm font-semibold sm:col-span-2">Available room<select className="admin-field mt-1" value={roomId} onChange={(e) => setRoomId(Number(e.target.value))}><option value={0}>{available.isLoading ? "Checking…" : available.data?.length ? "Choose a room" : "No matching room"}</option>{available.data?.map((room) => <option key={room.id} value={room.id}>Room {room.roomNumber} · {room.bedConfig}{room.kitchen ? " · Kitchen" : ""}</option>)}</select></label><label className="text-sm font-semibold">Kitchen preference<select className="admin-field mt-1" value={kitchenPreference} onChange={(e) => setKitchenPreference(e.target.value as typeof kitchenPreference)}><option value="NO_PREFERENCE">No preference</option><option value="PREFER">Prefer a kitchen</option><option value="REQUIRED">Kitchen required</option></select></label><label className="text-sm font-semibold">Confirmed arrival time<input className="admin-field mt-1" value={preferredCheckInTime} onChange={(e) => setPreferredCheckInTime(e.target.value)} placeholder="2:00 PM" /></label></div></section>
+        <section className="bg-white p-5"><h2 className="text-lg font-bold">Guest</h2><div className="mt-4 grid gap-4 sm:grid-cols-2"><label className="text-sm font-semibold">First name *<input className="admin-field mt-1" value={firstName} onChange={(e) => setFirstName(e.target.value)} required maxLength={100} /></label><label className="text-sm font-semibold">Last name *<input className="admin-field mt-1" value={lastName} onChange={(e) => setLastName(e.target.value)} required maxLength={100} /></label><label className="text-sm font-semibold">Phone (optional)<input className="admin-field mt-1" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={50} /></label><label className="text-sm font-semibold">Email (optional)<input className="admin-field mt-1" type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></label></div><div className="mt-4 flex flex-wrap gap-6"><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={pets} onChange={(e) => setPets(e.target.checked)} />Pets</label><label className="text-sm font-semibold">Approved pet fee (optional)<input className="admin-field mt-1 w-40" value={petFee} onChange={(e) => setPetFee(e.target.value)} placeholder="0.00" /></label></div></section>
+      </div>
+      <aside className="flex flex-col gap-6"><section className="border-t-4 border-slate-800 bg-white p-5"><h2 className="text-lg font-bold">Manual confirmation</h2><p className="mt-2 text-sm text-slate-600">This bypasses the online card-guarantee step and records an ADMIN override. No confirmation email is sent automatically.</p><label className="mt-4 block text-sm font-semibold">Override reason *<textarea className="admin-field mt-1 min-h-24" value={overrideReason} onChange={(e) => setOverrideReason(e.target.value)} required minLength={5} /></label><label className="mt-4 block text-sm font-semibold">Internal notes<textarea className="admin-field mt-1" value={internalNotes} onChange={(e) => setInternalNotes(e.target.value)} /></label>{error && <p role="alert" className="mt-4 border-l-4 border-red-600 bg-red-50 p-3 text-sm text-red-800">{error}</p>}<button disabled={create.isPending || !roomId} className="admin-btn mt-5 w-full bg-emerald-700 text-white">{create.isPending ? <LoaderCircle className="animate-spin" size={17} /> : null}Create & Check In</button></section></aside>
+    </form>
+  </AdminLayout>;
+}
